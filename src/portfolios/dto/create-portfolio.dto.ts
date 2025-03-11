@@ -1,21 +1,15 @@
 import { IsString, IsUUID, IsOptional, IsObject, IsBoolean } from 'class-validator';
+import { InputJsonValue } from '@prisma/client/runtime/library';
 
 export class CreatePortfolioDto {
   @IsUUID()
   userId: string;
 
-  @IsUUID()
+  @IsString()
   templateId: string;
 
-  @IsString()
-  title: string;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
-
   @IsObject()
-  customizations: Record<string, any>;
+  layout: InputJsonValue;
 
   @IsBoolean()
   @IsOptional()
