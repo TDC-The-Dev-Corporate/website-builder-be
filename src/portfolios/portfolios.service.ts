@@ -10,6 +10,9 @@ export class PortfoliosService {
   create(createPortfolioDto: CreatePortfolioDto) {
     return this.prisma.portfolio.create({
       data: createPortfolioDto,
+      include: {
+        user: true
+      }
     });
   }
 
