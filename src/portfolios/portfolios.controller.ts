@@ -6,12 +6,13 @@ import {
   Patch,
   Param,
   Delete,
-} from '@nestjs/common';
-import { PortfoliosService } from './portfolios.service';
-import { CreatePortfolioDto } from './dto/create-portfolio.dto';
-import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
+} from "@nestjs/common";
 
-@Controller('portfolios')
+import { PortfoliosService } from "./portfolios.service";
+import { CreatePortfolioDto } from "./dto/create-portfolio.dto";
+import { UpdatePortfolioDto } from "./dto/update-portfolio.dto";
+
+@Controller("portfolios")
 export class PortfoliosController {
   constructor(private readonly portfoliosService: PortfoliosService) {}
 
@@ -25,26 +26,32 @@ export class PortfoliosController {
     return this.portfoliosService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @Get(":id")
+  findOne(@Param("id") id: string) {
     return this.portfoliosService.findOne(id);
   }
 
-  @Get('user/:userId')
-  findByUserId(@Param('userId') userId: string) {
+  @Get("user/:userId")
+  findByUserId(@Param("userId") userId: string) {
     return this.portfoliosService.findByUserId(userId);
   }
 
-  @Patch(':id')
+  @Get("userByName/:name")
+  findByUserName(@Param("name") name: string) {
+    console.log("findByUserName", name);
+    return this.portfoliosService.findByUserName(name);
+  }
+
+  @Patch(":id")
   update(
-    @Param('id') id: string,
-    @Body() updatePortfolioDto: UpdatePortfolioDto,
+    @Param("id") id: string,
+    @Body() updatePortfolioDto: UpdatePortfolioDto
   ) {
     return this.portfoliosService.update(id, updatePortfolioDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
+  @Delete(":id")
+  remove(@Param("id") id: string) {
     return this.portfoliosService.remove(id);
   }
 }

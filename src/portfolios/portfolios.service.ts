@@ -1,18 +1,30 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreatePortfolioDto } from './dto/create-portfolio.dto';
-import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+
+import { PrismaService } from "../prisma/prisma.service";
+
+import { CreatePortfolioDto } from "./dto/create-portfolio.dto";
+import { UpdatePortfolioDto } from "./dto/update-portfolio.dto";
 
 @Injectable()
 export class PortfoliosService {
   constructor(private prisma: PrismaService) {}
 
-  create(createPortfolioDto: CreatePortfolioDto) {
-    return this.prisma.portfolio.create({
+  async create(createPortfolioDto: CreatePortfolioDto) {
+    const existingPortfolio = await this.prisma.portfolio.findFirst({
+      where: {
+        userId: createPortfolioDto.userId,
+      },
+    });
+
+    if (existingPortfolio) {
+      throw new Error("User already has a portfolio");
+    }
+
+    return await this.prisma.portfolio.create({
       data: createPortfolioDto,
       include: {
-        user: true
-      }
+        user: true,
+      },
     });
   }
 
@@ -48,6 +60,26 @@ export class PortfoliosService {
         template: true,
       },
     });
+  }
+
+  async findByUserName(name: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { name: name },
+        include: {
+          portfolios: true,
+        },
+      });
+
+      if (!user || user.portfolios.length === 0) {
+        throw new Error("User or portfolio not found");
+      }
+
+      return user.portfolios[0];
+    } catch (error) {
+      console.error("Error fetching portfolio:", error);
+      return null;
+    }
   }
 
   async update(id: string, updatePortfolioDto: UpdatePortfolioDto) {
