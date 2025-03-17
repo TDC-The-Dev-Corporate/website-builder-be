@@ -1,17 +1,12 @@
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
+
 import { PrismaService } from "src/prisma/prisma.service";
 import { RegisterDto } from "./dto/register.dto";
 import { comparePassword, hashPassword } from "src/utils/utility.functions";
 import { VerifyService } from "src/utils/verify.service";
-import { JwtService } from "@nestjs/jwt";
 import { MailerService } from "src/mailer/mailer.service";
-import { ConfigService } from "@nestjs/config";
 import { LogInDto } from "./dto/login.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { VerifyUserDto } from "./dto/verify-user.dto";
