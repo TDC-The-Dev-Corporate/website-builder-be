@@ -65,7 +65,7 @@ export class PortfoliosService {
   async findByUserName(name: string) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { name: name },
+        where: { username: name },
         include: {
           portfolios: true,
         },

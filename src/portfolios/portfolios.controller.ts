@@ -38,7 +38,6 @@ export class PortfoliosController {
 
   @Get("userByName/:name")
   findByUserName(@Param("name") name: string) {
-    console.log("findByUserName", name);
     return this.portfoliosService.findByUserName(name);
   }
 
