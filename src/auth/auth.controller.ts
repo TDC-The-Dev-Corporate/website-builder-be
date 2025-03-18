@@ -1,4 +1,14 @@
-import { Body, Controller, Patch, Post, Req, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
 
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
@@ -44,5 +54,31 @@ export class AuthController {
   @Post("sendOTP")
   sendOtp(@Body() sendOTPDto: SendOTPDto) {
     return this.authService.sendEmailOTP(sendOTPDto);
+  }
+
+  @ApiOperation({ summary: "Login with google" })
+  @Get("google")
+  @UseGuards(AuthGuard("google"))
+  async googleLogin() {
+    return { message: "Redirecting to Google..." };
+  }
+
+  @ApiOperation({ summary: "Login with google" })
+  @Get("google/callback")
+  @UseGuards(AuthGuard("google"))
+  async googleAuthCallback(@Req() req, @Res() res) {
+    const result = await this.authService.handleOAuthLogin(req.user);
+
+    const html = `
+    <html>
+      <script>
+        window.opener.postMessage(${JSON.stringify(result)}, 'http://localhost:3000');
+        window.close();
+      </script>
+    </html>
+  `;
+
+    res.setHeader("Content-Type", "text/html");
+    res.send(html);
   }
 }

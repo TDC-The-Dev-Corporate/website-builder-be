@@ -219,4 +219,18 @@ export class AuthService {
       throw new HttpException("User not found", HttpStatus.NOT_FOUND);
     }
   }
+
+  async handleOAuthLogin(user: any) {
+    const token = await this.generateToken(user.id);
+    return {
+      success: true,
+      message: "Login successful",
+      data: {
+        access_token: token,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+      },
+    };
+  }
 }

@@ -1,22 +1,8 @@
-// import { Module } from '@nestjs/common';
-// import { AuthService } from './auth.service';
-// import { AuthController } from './auth.controller';
-// import { PrismaModule } from 'src/prisma/prisma.module';
-// import { MailerModule } from 'src/mailer/mailer.module';
-// import { VerifyService } from 'src/utils/verify.service';
-// import { JwtModule } from '@nestjs/jwt';
-// import { JwtStrategy } from './jwt/jwt.strategy';
-
-// @Module({
-//   imports: [PrismaModule, MailerModule, JwtModule],
-//   controllers: [AuthController],
-//   providers: [AuthService, VerifyService, JwtStrategy],
-// })
-// export class AuthModule {}
-
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
+import { PassportModule } from "@nestjs/passport";
+
 import { JwtStrategy } from "./jwt/jwt.strategy";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
@@ -25,11 +11,13 @@ import { MailerModule } from "src/mailer/mailer.module";
 import { PrismaService } from "src/prisma/prisma.service";
 import { VerifyService } from "src/utils/verify.service";
 import { MailerService } from "src/mailer/mailer.service";
+import { GoogleStrategy } from "./strategies/google.strategy";
 
 @Module({
   imports: [
     PrismaModule,
     MailerModule,
+    PassportModule.register({ defaultStrategy: "jwt" }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -38,7 +26,7 @@ import { MailerService } from "src/mailer/mailer.service";
         signOptions: { expiresIn: "1d" },
       }),
     }),
-    ConfigModule.forRoot(), // Make sure ConfigModule is imported
+    ConfigModule.forRoot(),
   ],
   controllers: [AuthController],
   providers: [
@@ -48,7 +36,8 @@ import { MailerService } from "src/mailer/mailer.service";
     VerifyService,
     MailerService,
     ConfigService,
-  ], // Ensure ConfigService is provided
+    GoogleStrategy,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}
