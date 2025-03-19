@@ -6,9 +6,9 @@ export class RegisterDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: "JohnDoe" })
+  @ApiProperty({ example: "JohnDoe", description: "Unique username" })
   @IsNotEmpty()
-  @Matches(/^\S*$/, { message: "userName should not contain spaces" })
+  @Matches(/^\S*$/, { message: "Username should not contain spaces" })
   username: string;
 
   @ApiProperty({
@@ -20,10 +20,45 @@ export class RegisterDto {
 
   @ApiProperty({
     example: "StrongPassword123!",
-    description: "User password",
+    description: "User password (min 6 characters)",
     minLength: 6,
   })
   @IsNotEmpty()
   @MinLength(6)
   password: string;
+
+  @ApiProperty({
+    example: "Tech Solutions",
+    description: "Company name",
+  })
+  @IsNotEmpty()
+  companyName: string;
+
+  @ApiProperty({
+    example: "+1234567890",
+    description: "Phone number",
+  })
+  @IsNotEmpty()
+  phoneNumber: string;
+
+  @ApiProperty({
+    example: "123 Main St, New York, USA",
+    description: "User's address",
+  })
+  @IsNotEmpty()
+  address: string;
+
+  @ApiProperty({
+    example: "LIC123456",
+    description: "Business license number",
+  })
+  @IsNotEmpty()
+  licenseNumber: string;
+
+  @ApiProperty({
+    example: "Software Development",
+    description: "User's trade specialization",
+  })
+  @IsNotEmpty()
+  tradeSpecialization: string;
 }

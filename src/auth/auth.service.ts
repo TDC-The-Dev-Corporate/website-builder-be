@@ -36,12 +36,18 @@ export class AuthService {
       }
 
       const hashedPassword = await hashPassword(registerDto.password);
+
       const userCreated = await this.prismaService.user.create({
         data: {
           name: registerDto.name,
           email: registerDto.email.toLowerCase(),
           password: hashedPassword,
           username: registerDto.username,
+          companyName: registerDto.companyName,
+          phoneNumber: registerDto.phoneNumber,
+          address: registerDto.address,
+          licenseNumber: registerDto.licenseNumber,
+          tradeSpecialization: registerDto.tradeSpecialization,
         },
       });
 
@@ -119,9 +125,7 @@ export class AuthService {
       message: "Login successful",
       data: {
         access_token: token,
-        name: user.name,
-        email: user.email,
-        username: user.username,
+        ...user,
       },
     };
   }
@@ -227,9 +231,7 @@ export class AuthService {
       message: "Login successful",
       data: {
         access_token: token,
-        name: user.name,
-        username: user.username,
-        email: user.email,
+        ...user,
       },
     };
   }
