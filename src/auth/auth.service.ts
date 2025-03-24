@@ -48,6 +48,9 @@ export class AuthService {
           address: registerDto.address,
           licenseNumber: registerDto.licenseNumber,
           tradeSpecialization: registerDto.tradeSpecialization,
+          profileImage: registerDto.profileImage
+            ? registerDto.profileImage
+            : null,
         },
       });
 
@@ -103,7 +106,7 @@ export class AuthService {
 
   async login(loginDto: LogInDto) {
     const email = loginDto.email.trim().toLowerCase();
-    const password = loginDto.password.trim();
+    const password = loginDto.password?.trim();
 
     const user = await this.prismaService.user.findUnique({
       where: { email },
@@ -111,6 +114,13 @@ export class AuthService {
 
     if (!user) {
       throw new HttpException("User not found.", HttpStatus.NOT_FOUND);
+    }
+
+    if (!user.password) {
+      throw new HttpException(
+        "This account is registered via Google. Please log in using Google.",
+        HttpStatus.UNAUTHORIZED
+      );
     }
 
     const isPasswordValid = await comparePassword(password, user.password);
@@ -155,7 +165,7 @@ export class AuthService {
     }
 
     return this.jwt.signAsync(payload, {
-      expiresIn: jwt_expiryTime,
+      expiresIn: "10y",
       secret: jwt_secret,
     });
   }

@@ -12,6 +12,7 @@ model User {
   email              String?    @unique
   name               String?    
   username           String?    @unique
+  profileImage         String?
   password           String?
   googleId           String?    @unique
   is_emailVerified   Boolean    @default(false)
