@@ -8,17 +8,24 @@ datasource db {
 }
 
 model User {
-  id               String     @id @default(uuid())
-  email            String?    @unique
-  name             String?    
-  username         String?    @unique
-  password         String?
-  googleId         String?    @unique
-  is_emailVerified Boolean    @default(false)
-  portfolios       Portfolio[]
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  id                 String     @id @default(uuid())
+  email              String?    @unique
+  name               String?    
+  username           String?    @unique
+  profileImage         String?
+  password           String?
+  googleId           String?    @unique
+  is_emailVerified   Boolean    @default(false)
+  companyName        String?
+  phoneNumber        String?
+  address            String?
+  licenseNumber      String?
+  tradeSpecialization String?
+  portfolios         Portfolio[]
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 }
+
 
 model VerifyUser {
   id                String   @id @default(uuid())

@@ -51,7 +51,6 @@ export class VerifyService {
   ): Promise<object> {
     try {
       const usernameType = isEmailOrPhoneNumber(username.toLowerCase()); // check the username passed is either email or phone
-      console.log(usernameType);
 
       const userToVerify = await this.prismaService.verifyUser.findFirst({
         where: {

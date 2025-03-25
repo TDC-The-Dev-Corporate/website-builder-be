@@ -25,7 +25,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
     profile: any,
     done: VerifyCallback
   ) {
-    const { id, emails, displayName } = profile;
+    const { id, emails, displayName, photos } = profile;
 
     let user = await this.prismaService.user.findUnique({
       where: { googleId: id },
@@ -38,6 +38,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
           email: emails[0].value,
           name: displayName,
           username: displayName.replace(/\s+/g, ""),
+          profileImage: photos?.[0]?.value || null,
           is_emailVerified: true,
         },
       });
