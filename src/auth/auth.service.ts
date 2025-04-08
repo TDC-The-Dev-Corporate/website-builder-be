@@ -11,6 +11,7 @@ import { LogInDto } from "./dto/login.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { VerifyUserDto } from "./dto/verify-user.dto";
 import { SendOTPDto } from "./dto/send-otp.dto";
+import { ForgetPasswordDto } from "./dto/forget-password.dto";
 
 @Injectable()
 export class AuthService {
@@ -86,7 +87,6 @@ export class AuthService {
 
       const user = await this.prismaService.user.findUnique({
         where: { email: email.toLowerCase() },
-        select: { id: true },
       });
 
       if (!user) {
@@ -102,6 +102,29 @@ export class AuthService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async resetForgottenPassword(forgetPwd: ForgetPasswordDto) {
+    const user = await this.prismaService.user.findUnique({
+      where: { email: forgetPwd.email },
+    });
+
+    if (!user) {
+      throw new HttpException("User not found.", HttpStatus.NOT_FOUND);
+    }
+
+    if (forgetPwd.newPassword !== forgetPwd.confirmNewPassword) {
+      throw new HttpException("Passwords do not match", HttpStatus.BAD_REQUEST);
+    }
+
+    const hashedPassword = await hashPassword(forgetPwd.newPassword);
+
+    await this.prismaService.user.update({
+      where: { email: forgetPwd.email },
+      data: { password: hashedPassword },
+    });
+
+    return { success: true, message: "Password updated successfully" };
   }
 
   async login(loginDto: LogInDto) {
@@ -209,8 +232,6 @@ export class AuthService {
   }
 
   async sendEmailOTP(sendOtpDto: SendOTPDto) {
-    //const isDoctor = await this.doctorService.fin
-
     const isUser = await this.prismaService.user.findUnique({
       where: {
         email: sendOtpDto.email,
@@ -228,7 +249,7 @@ export class AuthService {
         body
       );
 
-      return { message: `Email sent to ${isUser.email}` };
+      return { message: `Email sent to ${isUser.email}`, user: isUser };
     } else {
       throw new HttpException("User not found", HttpStatus.NOT_FOUND);
     }

@@ -4,6 +4,7 @@ import {
   Get,
   Patch,
   Post,
+  Put,
   Req,
   Res,
   UseGuards,
@@ -18,6 +19,7 @@ import { JwtGuard } from "./jwt/jwt.guard";
 import { ApiBearerAuth, ApiTags, ApiOperation } from "@nestjs/swagger";
 import { VerifyUserDto } from "./dto/verify-user.dto";
 import { SendOTPDto } from "./dto/send-otp.dto";
+import { ForgetPasswordDto } from "./dto/forget-password.dto";
 
 @ApiTags("Auth")
 @Controller("auth")
@@ -34,6 +36,12 @@ export class AuthController {
   @Post("verifyUser")
   verifyUser(@Body() verifyUserDto: VerifyUserDto) {
     return this.authService.verifyUser(verifyUserDto);
+  }
+
+  @ApiOperation({ summary: "Reset fogotten password" })
+  @Put("reset-forget-password")
+  forgetPassword(@Body() forgetPwd: ForgetPasswordDto) {
+    return this.authService.resetForgottenPassword(forgetPwd);
   }
 
   @ApiOperation({ summary: "Log in an existing user" })
