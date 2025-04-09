@@ -1,4 +1,4 @@
-import { Controller, Put, Body, Req, UseGuards } from "@nestjs/common";
+import { Controller, Put, Body, Req, UseGuards, Delete } from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 
 import { UpdateUserDto } from "./dto/updateUser.dto";
@@ -14,5 +14,12 @@ export class UserController {
   @ApiBearerAuth()
   update(@Body() updateUser: UpdateUserDto) {
     return this.UserService.updateUser(updateUser);
+  }
+
+  @Delete()
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
+  remove(@Req() req) {
+    return this.UserService.removeUser(req.user.id);
   }
 }

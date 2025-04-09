@@ -21,4 +21,22 @@ export class UserService {
       data: { ...updateUserDto },
     });
   }
+
+  async removeUser(userId: string) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundException("User not found");
+    }
+
+    await this.prisma.portfolio.deleteMany({
+      where: { userId: userId },
+    });
+
+    return await this.prisma.user.delete({
+      where: { id: userId },
+    });
+  }
 }
