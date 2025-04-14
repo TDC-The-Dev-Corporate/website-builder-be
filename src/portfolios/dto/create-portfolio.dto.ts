@@ -1,12 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import {
-  IsString,
-  IsUUID,
-  IsOptional,
-  IsObject,
-  IsBoolean,
-} from "class-validator";
-import { InputJsonValue } from "@prisma/client/runtime/library";
+import { IsString, IsUUID, IsOptional, IsBoolean } from "class-validator";
 
 export class CreatePortfolioDto {
   @ApiProperty()
@@ -15,11 +8,7 @@ export class CreatePortfolioDto {
 
   @ApiProperty()
   @IsString()
-  templateId: string;
-
-  @ApiProperty()
-  @IsObject()
-  layout: InputJsonValue;
+  htmlContent: string;
 
   @ApiProperty()
   @IsBoolean()

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 
 import { PrismaService } from "../prisma/prisma.service";
 
@@ -17,7 +22,10 @@ export class PortfoliosService {
     });
 
     if (existingPortfolio) {
-      throw new Error("User already has a portfolio");
+      throw new HttpException(
+        "User already has a portfolio",
+        HttpStatus.BAD_REQUEST
+      );
     }
 
     return await this.prisma.portfolio.create({
@@ -32,7 +40,6 @@ export class PortfoliosService {
     return this.prisma.portfolio.findMany({
       include: {
         user: true,
-        template: true,
       },
     });
   }
@@ -42,7 +49,6 @@ export class PortfoliosService {
       where: { id },
       include: {
         user: true,
-        template: true,
       },
     });
 
@@ -56,9 +62,6 @@ export class PortfoliosService {
   findByUserId(userId: string) {
     return this.prisma.portfolio.findMany({
       where: { userId },
-      include: {
-        template: true,
-      },
     });
   }
 
