@@ -36,6 +36,17 @@ export class AuthService {
         );
       }
 
+      const checkExistingUsername = await this.prismaService.user.findUnique({
+        where: { username: registerDto.username },
+      });
+
+      if (checkExistingUsername) {
+        throw new HttpException(
+          "Username already exists.",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
       const hashedPassword = await hashPassword(registerDto.password);
 
       const userCreated = await this.prismaService.user.create({
