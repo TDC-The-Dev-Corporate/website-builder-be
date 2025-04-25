@@ -6,11 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Put,
 } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 
 import { PortfoliosService } from "./portfolios.service";
 import { CreatePortfolioDto } from "./dto/create-portfolio.dto";
 import { UpdatePortfolioDto } from "./dto/update-portfolio.dto";
+import { JwtGuard } from "src/auth/jwt/jwt.guard";
 
 @Controller("portfolios")
 export class PortfoliosController {
@@ -49,8 +53,18 @@ export class PortfoliosController {
     return this.portfoliosService.update(id, updatePortfolioDto);
   }
 
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
   @Delete(":id")
   remove(@Param("id") id: string) {
     return this.portfoliosService.remove(id);
+  }
+
+  @ApiOperation({ summary: "Publish website for user" })
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
+  @Put("publish/:id")
+  publish(@Param("id") id: string) {
+    return this.portfoliosService.publishPortfolio(id);
   }
 }

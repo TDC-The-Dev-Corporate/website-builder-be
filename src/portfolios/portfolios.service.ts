@@ -6,7 +6,6 @@ import {
 } from "@nestjs/common";
 
 import { PrismaService } from "../prisma/prisma.service";
-
 import { CreatePortfolioDto } from "./dto/create-portfolio.dto";
 import { UpdatePortfolioDto } from "./dto/update-portfolio.dto";
 
@@ -20,13 +19,6 @@ export class PortfoliosService {
         userId: createPortfolioDto.userId,
       },
     });
-
-    if (existingPortfolio) {
-      throw new HttpException(
-        "User already has a portfolio",
-        HttpStatus.BAD_REQUEST
-      );
-    }
 
     return await this.prisma.portfolio.create({
       data: createPortfolioDto,
@@ -78,7 +70,7 @@ export class PortfoliosService {
         throw new Error("User or portfolio not found");
       }
 
-      return user.portfolios[0];
+      return user.portfolios.find((portfolio) => portfolio.published);
     } catch (error) {
       console.error("Error fetching portfolio:", error);
       return null;
@@ -111,6 +103,24 @@ export class PortfoliosService {
 
     return this.prisma.portfolio.delete({
       where: { id },
+    });
+  }
+
+  async publishPortfolio(id: string) {
+    const portfolio = await this.prisma.portfolio.findUnique({
+      where: { id },
+    });
+
+    if (!portfolio) {
+      throw new NotFoundException(`Portfolio with ID ${id} not found`);
+    }
+
+    return this.prisma.portfolio.update({
+      where: { id },
+      data: { published: true },
+      include: {
+        user: true,
+      },
     });
   }
 }

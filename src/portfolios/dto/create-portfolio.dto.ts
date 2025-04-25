@@ -11,6 +11,11 @@ export class CreatePortfolioDto {
   htmlContent: string;
 
   @ApiProperty()
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @ApiProperty()
   @IsBoolean()
   @IsOptional()
   published?: boolean;
