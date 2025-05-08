@@ -115,29 +115,6 @@ export class AuthService {
     }
   }
 
-  async resetForgottenPassword(forgetPwd: ForgetPasswordDto) {
-    const user = await this.prismaService.user.findUnique({
-      where: { email: forgetPwd.email },
-    });
-
-    if (!user) {
-      throw new HttpException("User not found.", HttpStatus.NOT_FOUND);
-    }
-
-    if (forgetPwd.newPassword !== forgetPwd.confirmNewPassword) {
-      throw new HttpException("Passwords do not match", HttpStatus.BAD_REQUEST);
-    }
-
-    const hashedPassword = await hashPassword(forgetPwd.newPassword);
-
-    await this.prismaService.user.update({
-      where: { email: forgetPwd.email },
-      data: { password: hashedPassword },
-    });
-
-    return { success: true, message: "Password updated successfully" };
-  }
-
   async login(loginDto: LogInDto) {
     const email = loginDto.email.trim().toLowerCase();
     const password = loginDto.password?.trim();
@@ -204,31 +181,23 @@ export class AuthService {
     });
   }
 
-  async resetPassword(userId: string, resetPasswordDto: ResetPasswordDto) {
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
     const user = await this.prismaService.user.findUnique({
-      where: { id: userId },
+      where: { email: resetPasswordDto.email },
     });
 
     if (!user) {
       throw new HttpException("User not found.", HttpStatus.NOT_FOUND);
     }
 
-    if (resetPasswordDto.newPassword !== resetPasswordDto.confirmNewPassword) {
+    if (resetPasswordDto.password !== resetPasswordDto.confirmPassword) {
       throw new HttpException("Passwords do not match", HttpStatus.BAD_REQUEST);
     }
 
-    const isOldPasswordValid = await comparePassword(
-      resetPasswordDto.oldPassword,
-      user.password
-    );
-    if (!isOldPasswordValid) {
-      throw new HttpException("Invalid old password", HttpStatus.UNAUTHORIZED);
-    }
-
-    const hashedPassword = await hashPassword(resetPasswordDto.newPassword);
+    const hashedPassword = await hashPassword(resetPasswordDto.password);
 
     await this.prismaService.user.update({
-      where: { id: userId },
+      where: { email: resetPasswordDto.email },
       data: { password: hashedPassword },
     });
 

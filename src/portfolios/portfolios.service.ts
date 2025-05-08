@@ -45,7 +45,7 @@ export class PortfoliosService {
     });
 
     if (!portfolio) {
-      throw new NotFoundException(`Portfolio with ID ${id} not found`);
+      throw new NotFoundException(`48 Portfolio with ID ${id} not found`);
     }
 
     return portfolio;
@@ -54,6 +54,9 @@ export class PortfoliosService {
   findByUserId(userId: string) {
     return this.prisma.portfolio.findMany({
       where: { userId },
+      include: {
+        user: true,
+      },
     });
   }
 
@@ -83,7 +86,7 @@ export class PortfoliosService {
     });
 
     if (!portfolio) {
-      throw new NotFoundException(`Portfolio with ID ${id} not found`);
+      throw new NotFoundException(`89 Portfolio with ID ${id} not found`);
     }
 
     return this.prisma.portfolio.update({
@@ -98,7 +101,7 @@ export class PortfoliosService {
     });
 
     if (!portfolio) {
-      throw new NotFoundException(`Portfolio with ID ${id} not found`);
+      throw new NotFoundException(`104 Portfolio with ID ${id} not found`);
     }
 
     return this.prisma.portfolio.delete({
@@ -112,7 +115,7 @@ export class PortfoliosService {
     });
 
     if (!portfolio) {
-      throw new NotFoundException(`Portfolio with ID ${id} not found`);
+      throw new NotFoundException(`118 Portfolio with ID ${id} not found`);
     }
 
     return this.prisma.portfolio.update({

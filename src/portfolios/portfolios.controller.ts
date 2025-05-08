@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Put,
+  Req,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 
@@ -30,14 +31,18 @@ export class PortfoliosController {
     return this.portfoliosService.findAll();
   }
 
-  @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.portfoliosService.findOne(id);
+  @Get("userDrafts")
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
+  findByUserId(@Req() req) {
+    console.log("user id", req.user.id);
+    return this.portfoliosService.findByUserId(req.user.id);
   }
 
-  @Get("user/:userId")
-  findByUserId(@Param("userId") userId: string) {
-    return this.portfoliosService.findByUserId(userId);
+  @Get(":id")
+  findOne(@Param("id") id: string) {
+    console.log("id", id);
+    return this.portfoliosService.findOne(id);
   }
 
   @Get("userByName/:name")

@@ -38,12 +38,6 @@ export class AuthController {
     return this.authService.verifyUser(verifyUserDto);
   }
 
-  @ApiOperation({ summary: "Reset fogotten password" })
-  @Put("reset-forget-password")
-  forgetPassword(@Body() forgetPwd: ForgetPasswordDto) {
-    return this.authService.resetForgottenPassword(forgetPwd);
-  }
-
   @ApiOperation({ summary: "Log in an existing user" })
   @Post("login")
   login(@Body() loginDto: LogInDto) {
@@ -51,11 +45,9 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: "Reset password for an authenticated user" })
-  @UseGuards(JwtGuard)
-  @ApiBearerAuth()
   @Patch("resetPassword")
-  resetPassword(@Body() resetPasswordDto: ResetPasswordDto, @Req() req) {
-    return this.authService.resetPassword(req.user.userId, resetPasswordDto);
+  resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 
   @ApiOperation({ summary: "Send otp for users who forgot their password" })
