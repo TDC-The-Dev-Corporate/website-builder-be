@@ -35,13 +35,11 @@ export class PortfoliosController {
   @UseGuards(JwtGuard)
   @ApiBearerAuth()
   findByUserId(@Req() req) {
-    console.log("user id", req.user.id);
     return this.portfoliosService.findByUserId(req.user.id);
   }
 
   @Get(":id")
   findOne(@Param("id") id: string) {
-    console.log("id", id);
     return this.portfoliosService.findOne(id);
   }
 
