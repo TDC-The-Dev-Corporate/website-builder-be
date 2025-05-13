@@ -42,16 +42,6 @@ model VerifyUser {
   @@map(name: "verifyUser")
 }
 
-model Template {
-  id          String     @id
-  name        String
-  description String?
-  layout      Json      
-  thumbnail   String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-}
-
 model Portfolio {
   id           String   @id @default(uuid())
   userId       String
