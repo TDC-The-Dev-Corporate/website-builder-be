@@ -7,10 +7,12 @@ phases:
     commands:
       - echo "Installing dependencies..."
       - npm install
+
   build:
     commands:
       - echo "Building the NestJS app..."
       - npm run build
+
   post_build:
     commands:
       - echo "Zipping build artifacts..."
