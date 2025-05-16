@@ -12,6 +12,7 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { VerifyService } from "src/utils/verify.service";
 import { MailerService } from "src/mailer/mailer.service";
 import { GoogleStrategy } from "./strategies/google.strategy";
+import { HealthController } from "./health.controller";
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { GoogleStrategy } from "./strategies/google.strategy";
     }),
     ConfigModule.forRoot(),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, HealthController],
   providers: [
     AuthService,
     JwtStrategy,

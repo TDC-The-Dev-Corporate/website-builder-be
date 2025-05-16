@@ -1,0 +1,21 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo "Installing dependencies..."
+      - npm install
+  build:
+    commands:
+      - echo "Building the NestJS app..."
+      - npm run build
+  post_build:
+    commands:
+      - echo "Zipping build artifacts..."
+      - zip -r app.zip . -x "*.git*" "node_modules/*"
+
+artifacts:
+  files:
+    - app.zip
