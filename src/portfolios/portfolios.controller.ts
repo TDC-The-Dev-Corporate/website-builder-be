@@ -38,6 +38,20 @@ export class PortfoliosController {
     return this.portfoliosService.findByUserId(req.user.id);
   }
 
+  @Get("clearCacheById")
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
+  clearCacheByUserId(@Req() req) {
+    return this.portfoliosService.clearCacheByUserId(req.user.id);
+  }
+
+  @Get("clearCacheByName/:name")
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
+  clearCacheByUserName(@Param("name") name: string) {
+    return this.portfoliosService.clearCacheByUserName(name);
+  }
+
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.portfoliosService.findOne(id);

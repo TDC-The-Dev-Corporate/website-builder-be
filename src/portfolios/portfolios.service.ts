@@ -1,9 +1,5 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { Injectable, NotFoundException, Inject } from "@nestjs/common";
+import { Redis } from "ioredis";
 
 import { PrismaService } from "../prisma/prisma.service";
 import { CreatePortfolioDto } from "./dto/create-portfolio.dto";
@@ -11,7 +7,10 @@ import { UpdatePortfolioDto } from "./dto/update-portfolio.dto";
 
 @Injectable()
 export class PortfoliosService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject("REDIS_CLIENT") private readonly redisClient: Redis,
+    private prisma: PrismaService
+  ) {}
 
   async create(createPortfolioDto: CreatePortfolioDto) {
     const existingPortfolio = await this.prisma.portfolio.findFirst({
@@ -51,17 +50,60 @@ export class PortfoliosService {
     return portfolio;
   }
 
-  findByUserId(userId: string) {
-    return this.prisma.portfolio.findMany({
+  async findByUserId(userId: string) {
+    const cacheKey = `userDrafts:${userId}`;
+
+    const cachedData = await this.redisClient.get(cacheKey);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }
+
+    const data = await this.prisma.portfolio.findMany({
       where: { userId },
-      include: {
-        user: true,
-      },
+      include: { user: true },
     });
+
+    await this.redisClient.set(
+      cacheKey,
+      JSON.stringify(data),
+      "EX",
+      3600 // 1 hour (in seconds)
+    );
+
+    return data;
+  }
+
+  async clearCacheByUserId(userId: string): Promise<void> {
+    const cacheKey = `userDrafts:${userId}`;
+
+    const result = await this.redisClient.del(cacheKey);
+    if (result) {
+      console.log(`Cache cleared for key: ${cacheKey}`);
+    } else {
+      console.log(`No cache found for key: ${cacheKey}`);
+    }
+  }
+
+  async clearCacheByUserName(name: string): Promise<void> {
+    const cacheKey = `user:${name}`;
+
+    const result = await this.redisClient.del(cacheKey);
+    if (result) {
+      console.log(`Cache cleared for key: ${cacheKey}`);
+    } else {
+      console.log(`No cache found for key: ${cacheKey}`);
+    }
   }
 
   async findByUserName(name: string) {
     try {
+      const cacheKey = `user:${name}`;
+
+      const cachedData = await this.redisClient.get(cacheKey);
+      if (cachedData) {
+        return JSON.parse(cachedData);
+      }
+
       const user = await this.prisma.user.findUnique({
         where: { username: name },
         include: {
@@ -73,7 +115,18 @@ export class PortfoliosService {
         throw new Error("User or portfolio not found");
       }
 
-      return user.portfolios.find((portfolio) => portfolio.published);
+      const portfolio = user.portfolios.find(
+        (portfolio) => portfolio.published
+      );
+
+      await this.redisClient.set(
+        cacheKey,
+        JSON.stringify(portfolio),
+        "EX",
+        3600 // 1 hour (in seconds)
+      );
+
+      return portfolio;
     } catch (error) {
       console.error("Error fetching portfolio:", error);
       return null;
