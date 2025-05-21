@@ -1,4 +1,12 @@
-import { Controller, Put, Body, Req, UseGuards, Delete } from "@nestjs/common";
+import {
+  Controller,
+  Put,
+  Body,
+  Req,
+  UseGuards,
+  Delete,
+  Get,
+} from "@nestjs/common";
 import { ApiBearerAuth } from "@nestjs/swagger";
 
 import { UpdateUserDto } from "./dto/updateUser.dto";
@@ -21,5 +29,10 @@ export class UserController {
   @ApiBearerAuth()
   remove(@Req() req) {
     return this.UserService.removeUser(req.user.id);
+  }
+
+  @Get()
+  findAll() {
+    return this.UserService.findAllPublishedSiteUsers();
   }
 }

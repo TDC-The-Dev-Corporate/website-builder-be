@@ -39,4 +39,19 @@ export class UserService {
       where: { id: userId },
     });
   }
+
+  findAllPublishedSiteUsers() {
+    return this.prisma.user.findMany({
+      where: {
+        portfolios: {
+          some: {
+            published: true,
+          },
+        },
+      },
+      select: {
+        username: true,
+      },
+    });
+  }
 }
