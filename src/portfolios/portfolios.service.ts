@@ -63,12 +63,13 @@ export class PortfoliosService {
       include: { user: true },
     });
 
-    await this.redisClient.set(
-      cacheKey,
-      JSON.stringify(data),
-      "EX",
-      3600 // 1 hour (in seconds)
-    );
+    if (data.length > 0)
+      await this.redisClient.set(
+        cacheKey,
+        JSON.stringify(data),
+        "EX",
+        3600 // 1 hour (in seconds)
+      );
 
     return data;
   }
