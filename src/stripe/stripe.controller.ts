@@ -20,4 +20,10 @@ export class StripeController {
     );
     return { clientSecret };
   }
+
+  @UseGuards(JwtGuard)
+  @Post("create-subscription")
+  async createSubscription(@Request() req, @Body() body: { priceId: string }) {
+    return this.stripeService.createSubscription(req.user.id, body.priceId);
+  }
 }
