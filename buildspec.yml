@@ -3,21 +3,34 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 18
+      nodejs: 18 # Change this based on your application (python: 3.9, java: corretto11, etc.)
     commands:
-      - echo "Installing dependencies..."
-      - npm install
+      - echo Install phase started on `date`
+      # Add any installation commands here
+
+  pre_build:
+    commands:
+      - echo Pre-build phase started on `date`
+      # Add any pre-build commands here (like running tests)
 
   build:
     commands:
-      - echo "Building the NestJS app..."
-      - npm run build
+      - echo Build phase started on `date`
+      # Add your build commands here
+      # For Node.js: npm run build
+      # For Python: pip install -r requirements.txt
+      # For Java: mvn clean package
 
   post_build:
     commands:
-      - echo "Zipping build artifacts..."
-      - zip -r app.zip . -x "*.git*" "node_modules/*"
+      - echo Build completed on `date`
 
 artifacts:
   files:
-    - app.zip
+    - "**/*"
+  # Exclude files you don't want in the deployment package
+  exclude-paths:
+    - node_modules/**/* # Uncomment if Node.js
+    - .git/**/*
+    - .github/**/*
+    - "*.md"
