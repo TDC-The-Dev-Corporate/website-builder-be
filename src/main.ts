@@ -1,10 +1,26 @@
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import * as bodyParser from "body-parser";
 import { AppModule } from "./app.module";
+
+function rawBodySaver(req, res, buf: Buffer, encoding: string) {
+  if (buf && buf.length) {
+    (req as any).rawBody = buf;
+  }
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(
+    "/webhooks/stripe",
+    bodyParser.raw({
+      type: "application/json",
+      verify: rawBodySaver,
+    })
+  );
+
   app.enableCors({
     origin: (origin, callback) => {
       callback(null, true);
