@@ -55,6 +55,7 @@ export class PortfoliosService {
 
     const cachedData = await this.redisClient.get(cacheKey);
     if (cachedData) {
+      console.log(`Cache hit for key: ${cacheKey}`);
       return JSON.parse(cachedData);
     }
 
@@ -70,6 +71,7 @@ export class PortfoliosService {
         "EX",
         3600 // 1 hour (in seconds)
       );
+    console.log(`Cache miss`);
 
     return data;
   }

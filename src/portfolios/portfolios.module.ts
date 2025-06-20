@@ -13,8 +13,8 @@ import { PortfoliosController } from "./portfolios.controller";
 
       useFactory: () => {
         return new Redis({
-          host: "localhost", // Redis server host
-          port: 6379, // Redis server port
+          host: process.env.REDIS_HOST,
+          port: parseInt(process.env.REDIS_PORT, 10),
         });
       },
     },
