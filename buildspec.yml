@@ -3,23 +3,20 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 18 # Change this based on your application (python: 3.9, java: corretto11, etc.)
+      nodejs: 18
     commands:
       - echo Install phase started on `date`
-      # Add any installation commands here
+      - npm ci # or `npm install` if you prefer
 
   pre_build:
     commands:
       - echo Pre-build phase started on `date`
-      # Add any pre-build commands here (like running tests)
+      - npm run prisma:generate # if you're using Prisma
 
   build:
     commands:
       - echo Build phase started on `date`
-      # Add your build commands here
-      # For Node.js: npm run build
-      # For Python: pip install -r requirements.txt
-      # For Java: mvn clean package
+      - npm run build
 
   post_build:
     commands:
@@ -28,9 +25,8 @@ phases:
 artifacts:
   files:
     - "**/*"
-  # Exclude files you don't want in the deployment package
   exclude-paths:
-    - node_modules/**/* # Uncomment if Node.js
+    - node_modules/**/*
     - .git/**/*
     - .github/**/*
     - "*.md"
