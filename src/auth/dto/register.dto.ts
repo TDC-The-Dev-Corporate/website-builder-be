@@ -58,8 +58,8 @@ export class RegisterDto {
     example: "LIC123456",
     description: "Business license number",
   })
-  @IsNotEmpty()
-  licenseNumber: string;
+  @IsOptional()
+  licenseNumber?: string;
 
   @ApiProperty({
     example: "Software Development",
