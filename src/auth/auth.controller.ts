@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -20,11 +21,15 @@ import { ApiBearerAuth, ApiTags, ApiOperation } from "@nestjs/swagger";
 import { VerifyUserDto } from "./dto/verify-user.dto";
 import { SendOTPDto } from "./dto/send-otp.dto";
 import { ForgetPasswordDto } from "./dto/forget-password.dto";
+import { ConfigService } from "@nestjs/config";
 
 @ApiTags("Auth")
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService
+  ) {}
 
   @ApiOperation({ summary: "Register a new user" })
   @Post("register")
@@ -68,17 +73,52 @@ export class AuthController {
   @UseGuards(AuthGuard("google"))
   async googleAuthCallback(@Req() req, @Res() res) {
     const result = await this.authService.handleOAuthLogin(req.user);
+    const clientUrl = this.configService.get<string>("CLIENT_URL");
+
+    const payload = JSON.stringify(result)
+      .replace(/\\/g, "\\\\") // escape backslashes
+      .replace(/'/g, "\\'") // escape single quotes
+      .replace(/</g, "\\u003c"); // avoid </script> break
 
     const html = `
+    <!DOCTYPE html>
     <html>
-      <script>
-        window.opener.postMessage(${JSON.stringify(result)}, 'http://localhost:3000');
-        window.close();
-      </script>
+      <head><title>Login</title></head>
+      <body>
+        <script>
+          (function() {
+            const payload = '${payload}';
+            const data = JSON.parse(payload);
+            console.log('✅ Sending payload to opener:', data);
+            if (window.opener) {
+              window.opener.postMessage(data, '${clientUrl}');
+              window.close();
+            } else {
+              console.error('❌ No window.opener');
+            }
+          })();
+        </script>
+      </body>
     </html>
   `;
 
     res.setHeader("Content-Type", "text/html");
     res.send(html);
+  }
+
+  @Post("google/validate")
+  async googleValidateLogin(@Body("code") code: string) {
+    console.log("running......................");
+    if (!code) {
+      throw new BadRequestException("Authorization code is required");
+    }
+
+    const user = await this.authService.validate(code);
+
+    // optionally: generate a JWT token here if your app uses it
+    // const token = await this.authService.generateJwt(user);
+    // return { user, token };
+
+    return { user };
   }
 }

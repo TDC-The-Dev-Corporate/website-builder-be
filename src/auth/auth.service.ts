@@ -2,6 +2,8 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 
+import axios from "axios";
+
 import { PrismaService } from "src/prisma/prisma.service";
 import { RegisterDto } from "./dto/register.dto";
 import { comparePassword, hashPassword } from "src/utils/utility.functions";
@@ -12,6 +14,7 @@ import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { VerifyUserDto } from "./dto/verify-user.dto";
 import { SendOTPDto } from "./dto/send-otp.dto";
 import { ForgetPasswordDto } from "./dto/forget-password.dto";
+import { VerifyCallback } from "passport-google-oauth20";
 
 @Injectable()
 export class AuthService {
@@ -245,5 +248,73 @@ export class AuthService {
         ...user,
       },
     };
+  }
+
+  async validate(authorizationCode: string) {
+    try {
+      console.log("authorizationCode", authorizationCode);
+
+      console.log(
+        "process.env.GOOGLE_REDIRECT_URI",
+        process.env.GOOGLE_REDIRECT_URI
+      );
+      // Step 1: Exchange the authorization code for tokens
+      const tokenResponse = await axios.post(
+        "https://oauth2.googleapis.com/token",
+        {
+          code: authorizationCode,
+          client_id: process.env.GOOGLE_CLIENT_ID,
+          client_secret: process.env.GOOGLE_CLIENT_SECRET,
+          redirect_uri: process.env.GOOGLE_CALLBACK_URL, // Must match what was used in the frontend
+          grant_type: "authorization_code",
+        }
+      );
+
+      console.log("tokenResponse.data", tokenResponse.data);
+
+      const { access_token, id_token } = tokenResponse.data;
+
+      // Step 2: Use the access token to get user profile info
+      const profileResponse = await axios.get(
+        "https://www.googleapis.com/oauth2/v2/userinfo",
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        }
+      );
+
+      console.log("profileResponse.data", profileResponse.data);
+
+      const profile = profileResponse.data;
+      const { id, email, name, picture } = profile;
+
+      // Step 3: Check if user exists, else create
+      let user = await this.prismaService.user.findUnique({
+        where: { googleId: id },
+      });
+
+      if (!user) {
+        user = await this.prismaService.user.create({
+          data: {
+            googleId: id,
+            email,
+            name,
+            username: name.replace(/\s+/g, ""),
+            profileImage: picture || null,
+            is_emailVerified: true,
+          },
+        });
+
+        const token = await this.generateToken(user.id);
+
+        return { user, token };
+      }
+    } catch (error) {
+      console.error(
+        "Google OAuth validation error:",
+        error.response?.data || error.message
+      );
+    }
   }
 }
