@@ -1,4 +1,11 @@
-import { Controller, Post, Body, UseGuards, Request } from "@nestjs/common";
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Get,
+} from "@nestjs/common";
 
 import { StripeService } from "./stripe.service";
 import { JwtGuard } from "src/auth/jwt/jwt.guard";
@@ -25,5 +32,11 @@ export class StripeController {
   @Post("create-subscription")
   async createSubscription(@Request() req, @Body() body: { priceId: string }) {
     return this.stripeService.createSubscription(req.user.id, body.priceId);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get("current-subscription")
+  async getCurrentSubscription(@Request() req) {
+    return this.stripeService.getUserSubscription(req.user.id);
   }
 }

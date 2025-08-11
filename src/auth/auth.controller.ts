@@ -5,7 +5,6 @@ import {
   Get,
   Patch,
   Post,
-  Put,
   Req,
   Res,
   UseGuards,
@@ -16,11 +15,9 @@ import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LogInDto } from "./dto/login.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
-import { JwtGuard } from "./jwt/jwt.guard";
-import { ApiBearerAuth, ApiTags, ApiOperation } from "@nestjs/swagger";
+import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { VerifyUserDto } from "./dto/verify-user.dto";
 import { SendOTPDto } from "./dto/send-otp.dto";
-import { ForgetPasswordDto } from "./dto/forget-password.dto";
 import { ConfigService } from "@nestjs/config";
 
 @ApiTags("Auth")
@@ -108,17 +105,11 @@ export class AuthController {
 
   @Post("google/validate")
   async googleValidateLogin(@Body("code") code: string) {
-    console.log("running......................");
     if (!code) {
       throw new BadRequestException("Authorization code is required");
     }
 
-    const user = await this.authService.validate(code);
-
-    // optionally: generate a JWT token here if your app uses it
-    // const token = await this.authService.generateJwt(user);
-    // return { user, token };
-
-    return { user };
+    const res = await this.authService.validate(code);
+    return res;
   }
 }

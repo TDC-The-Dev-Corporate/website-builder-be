@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 
 import { PrismaService } from "../prisma/prisma.service";
 import Stripe from "stripe";
@@ -28,6 +28,17 @@ export class StripeService {
     return intent.client_secret;
   }
   async createSubscription(userId: string, priceId: string) {
+    const existing = await this.prisma.subscription.findFirst({
+      where: {
+        userId,
+        status: { in: ["active", "trialing", "past_due"] },
+      },
+    });
+
+    if (existing) {
+      throw new BadRequestException("You already have an active subscription.");
+    }
+
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
     let stripeCustomerId = user.stripeCustomerId;
@@ -139,5 +150,16 @@ export class StripeService {
     }
 
     return { success: true };
+  }
+
+  async getUserSubscription(userId: string) {
+    const sub = await this.prisma.subscription.findFirst({
+      where: {
+        userId,
+        status: { in: ["active", "trialing", "past_due"] }, // any valid subscription
+      },
+    });
+
+    return sub; // return null if no active
   }
 }

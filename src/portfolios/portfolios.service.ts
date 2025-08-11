@@ -53,57 +53,57 @@ export class PortfoliosService {
   async findByUserId(userId: string) {
     const cacheKey = `userDrafts:${userId}`;
 
-    // const cachedData = await this.redisClient.get(cacheKey);
-    // if (cachedData) {
-    //   console.log(`Cache hit for key: ${cacheKey}`);
-    //   return JSON.parse(cachedData);
-    // }
+    const cachedData = await this.redisClient.get(cacheKey);
+    if (cachedData) {
+      console.log(`Cache hit for key: ${cacheKey}`);
+      return JSON.parse(cachedData);
+    }
 
     const data = await this.prisma.portfolio.findMany({
       where: { userId },
       include: { user: true },
     });
 
-    // if (data.length > 0)
-    //   await this.redisClient.set(
-    //     cacheKey,
-    //     JSON.stringify(data),
-    //     "EX",
-    //     3600 // 1 hour (in seconds)
-    //   );
-    // console.log(`Cache miss`);
+    if (data.length > 0)
+      await this.redisClient.set(
+        cacheKey,
+        JSON.stringify(data),
+        "EX",
+        3600 // 1 hour (in seconds)
+      );
+    console.log(`Cache miss`);
 
     return data;
   }
 
   async clearCacheByUserId(userId: string): Promise<void> {
-    // const cacheKey = `userDrafts:${userId}`;
-    // const result = await this.redisClient.del(cacheKey);
-    // if (result) {
-    //   console.log(`Cache cleared for key: ${cacheKey}`);
-    // } else {
-    //   console.log(`No cache found for key: ${cacheKey}`);
-    // }
+    const cacheKey = `userDrafts:${userId}`;
+    const result = await this.redisClient.del(cacheKey);
+    if (result) {
+      console.log(`Cache cleared for key: ${cacheKey}`);
+    } else {
+      console.log(`No cache found for key: ${cacheKey}`);
+    }
   }
 
   async clearCacheByUserName(name: string): Promise<void> {
-    // const cacheKey = `user:${name}`;
-    // const result = await this.redisClient.del(cacheKey);
-    // if (result) {
-    //   console.log(`Cache cleared for key: ${cacheKey}`);
-    // } else {
-    //   console.log(`No cache found for key: ${cacheKey}`);
-    // }
+    const cacheKey = `user:${name}`;
+    const result = await this.redisClient.del(cacheKey);
+    if (result) {
+      console.log(`Cache cleared for key: ${cacheKey}`);
+    } else {
+      console.log(`No cache found for key: ${cacheKey}`);
+    }
   }
 
   async findByUserName(name: string) {
     try {
       const cacheKey = `user:${name}`;
 
-      // const cachedData = await this.redisClient.get(cacheKey);
-      // if (cachedData) {
-      //   return JSON.parse(cachedData);
-      // }
+      const cachedData = await this.redisClient.get(cacheKey);
+      if (cachedData) {
+        return JSON.parse(cachedData);
+      }
 
       const user = await this.prisma.user.findUnique({
         where: { username: name },
@@ -120,12 +120,12 @@ export class PortfoliosService {
         (portfolio) => portfolio.published
       );
 
-      // await this.redisClient.set(
-      //   cacheKey,
-      //   JSON.stringify(portfolio),
-      //   "EX",
-      //   3600 // 1 hour (in seconds)
-      // );
+      await this.redisClient.set(
+        cacheKey,
+        JSON.stringify(portfolio),
+        "EX",
+        3600 // 1 hour (in seconds)
+      );
 
       return portfolio;
     } catch (error) {
