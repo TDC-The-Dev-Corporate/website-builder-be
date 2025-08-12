@@ -19,12 +19,19 @@ export class PortfoliosService {
       },
     });
 
-    return await this.prisma.portfolio.create({
+    const newPortfolio = await this.prisma.portfolio.create({
       data: createPortfolioDto,
       include: {
         user: true,
       },
     });
+
+    // Clear user drafts cache after creating new portfolio
+    if (createPortfolioDto.userId) {
+      await this.clearCacheByUserId(createPortfolioDto.userId);
+    }
+
+    return newPortfolio;
   }
 
   findAll() {
@@ -137,16 +144,28 @@ export class PortfoliosService {
   async update(id: string, updatePortfolioDto: UpdatePortfolioDto) {
     const portfolio = await this.prisma.portfolio.findUnique({
       where: { id },
+      include: { user: true },
     });
 
     if (!portfolio) {
       throw new NotFoundException(`89 Portfolio with ID ${id} not found`);
     }
 
-    return this.prisma.portfolio.update({
+    const updatedPortfolio = await this.prisma.portfolio.update({
       where: { id },
       data: updatePortfolioDto,
+      include: { user: true },
     });
+
+    // Clear related caches after update
+    if (portfolio.user) {
+      await this.clearCacheByUserId(portfolio.user.id);
+      if (portfolio.user.username) {
+        await this.clearCacheByUserName(portfolio.user.username);
+      }
+    }
+
+    return updatedPortfolio;
   }
 
   async remove(id: string) {
@@ -166,18 +185,39 @@ export class PortfoliosService {
   async publishPortfolio(id: string) {
     const portfolio = await this.prisma.portfolio.findUnique({
       where: { id },
+      include: { user: true },
     });
 
     if (!portfolio) {
       throw new NotFoundException(`118 Portfolio with ID ${id} not found`);
     }
 
-    return this.prisma.portfolio.update({
+    // First, unpublish any other published portfolios for this user
+    await this.prisma.portfolio.updateMany({
+      where: {
+        userId: portfolio.userId,
+        published: true,
+        id: { not: id }, // Don't unpublish the current one if it's already published
+      },
+      data: { published: false },
+    });
+
+    const publishedPortfolio = await this.prisma.portfolio.update({
       where: { id },
       data: { published: true },
       include: {
         user: true,
       },
     });
+
+    // Clear related caches after publishing
+    if (portfolio.user) {
+      await this.clearCacheByUserId(portfolio.user.id);
+      if (portfolio.user.username) {
+        await this.clearCacheByUserName(portfolio.user.username);
+      }
+    }
+
+    return publishedPortfolio;
   }
 }

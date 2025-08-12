@@ -13,6 +13,10 @@ function rawBodySaver(req, res, buf: Buffer, encoding: string) {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Increase payload size limit for large HTML content
+  app.use(bodyParser.json({ limit: '50mb' }));
+  app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
   app.use(
     "/webhooks/stripe",
     bodyParser.raw({
