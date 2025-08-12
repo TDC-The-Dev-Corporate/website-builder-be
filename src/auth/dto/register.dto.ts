@@ -12,11 +12,6 @@ export class RegisterDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: "JohnDoe", description: "Unique username" })
-  @IsNotEmpty()
-  @Matches(/^\S*$/, { message: "Username should not contain spaces" })
-  username: string;
-
   @ApiProperty({
     example: "johndoe@example.com",
     description: "User email address",
@@ -34,29 +29,42 @@ export class RegisterDto {
   password: string;
 
   @ApiProperty({
+    example: "JohnDoe",
+    description: "Optional username - if not provided, will be auto-generated from name",
+    required: false,
+  })
+  @IsOptional()
+  @Matches(/^\S*$/, { message: "Username should not contain spaces" })
+  username?: string;
+
+  @ApiProperty({
     example: "Tech Solutions",
     description: "Company name",
+    required: false,
   })
-  @IsNotEmpty()
-  companyName: string;
+  @IsOptional()
+  companyName?: string;
 
   @ApiProperty({
     example: "+1234567890",
     description: "Phone number",
+    required: false,
   })
-  @IsNotEmpty()
-  phoneNumber: string;
+  @IsOptional()
+  phoneNumber?: string;
 
   @ApiProperty({
     example: "123 Main St, New York, USA",
     description: "User's address",
+    required: false,
   })
-  @IsNotEmpty()
-  address: string;
+  @IsOptional()
+  address?: string;
 
   @ApiProperty({
     example: "LIC123456",
     description: "Business license number",
+    required: false,
   })
   @IsOptional()
   licenseNumber?: string;
@@ -64,11 +72,15 @@ export class RegisterDto {
   @ApiProperty({
     example: "Software Development",
     description: "User's trade specialization",
+    required: false,
   })
-  @IsNotEmpty()
-  tradeSpecialization: string;
-
-  @ApiProperty()
   @IsOptional()
-  profileImage: string;
+  tradeSpecialization?: string;
+
+  @ApiProperty({
+    description: "Profile image URL",
+    required: false,
+  })
+  @IsOptional()
+  profileImage?: string;
 }

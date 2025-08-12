@@ -37,15 +37,22 @@ export class AuthService {
         );
       }
 
-      const checkExistingUsername = await this.prismaService.user.findUnique({
-        where: { username: registerDto.username },
-      });
+      // Generate username if not provided
+      let username = registerDto.username;
+      if (!username) {
+        username = await this.generateUniqueUsername(registerDto.name);
+      } else {
+        // Check if provided username already exists
+        const checkExistingUsername = await this.prismaService.user.findUnique({
+          where: { username: registerDto.username },
+        });
 
-      if (checkExistingUsername) {
-        throw new HttpException(
-          "Username already exists.",
-          HttpStatus.BAD_REQUEST
-        );
+        if (checkExistingUsername) {
+          throw new HttpException(
+            "Username already exists.",
+            HttpStatus.BAD_REQUEST
+          );
+        }
       }
 
       const hashedPassword = await hashPassword(registerDto.password);
@@ -55,15 +62,13 @@ export class AuthService {
           name: registerDto.name,
           email: registerDto.email.toLowerCase(),
           password: hashedPassword,
-          username: registerDto.username,
-          companyName: registerDto.companyName,
-          phoneNumber: registerDto.phoneNumber,
-          address: registerDto.address,
-          licenseNumber: registerDto.licenseNumber,
-          tradeSpecialization: registerDto.tradeSpecialization,
-          profileImage: registerDto.profileImage
-            ? registerDto.profileImage
-            : null,
+          username: username,
+          companyName: registerDto.companyName || null,
+          phoneNumber: registerDto.phoneNumber || null,
+          address: registerDto.address || null,
+          licenseNumber: registerDto.licenseNumber || null,
+          tradeSpecialization: registerDto.tradeSpecialization || null,
+          profileImage: registerDto.profileImage || null,
         },
       });
 
@@ -105,11 +110,20 @@ export class AuthService {
         throw new HttpException("User not found.", HttpStatus.NOT_FOUND);
       }
 
+      // Update user as verified
+      await this.prismaService.user.update({
+        where: { email: email.toLowerCase() },
+        data: { is_emailVerified: true },
+      });
+
       const token = await this.generateToken(user.id);
       return {
         success: true,
         message: "User verified!",
-        data: { access_token: token },
+        data: {
+          access_token: token,
+          ...user,
+        },
       };
     } catch (error) {
       throw error;
@@ -280,12 +294,15 @@ export class AuthService {
       });
 
       if (!user) {
+        // Generate unique username for Google OAuth user
+        const uniqueUsername = await this.generateUniqueUsername(name);
+        
         user = await this.prismaService.user.create({
           data: {
             googleId: id,
             email,
             name,
-            username: name.replace(/\s+/g, ""),
+            username: uniqueUsername,
             profileImage: picture || null,
             is_emailVerified: true,
           },
@@ -303,5 +320,100 @@ export class AuthService {
         error.response?.data || error.message
       );
     }
+  }
+
+  private async generateUniqueUsername(fullName: string): Promise<string> {
+    // Clean and format the full name
+    // Examples:
+    // "John Doe" -> "johndoe"
+    // "Mary Jane Smith" -> "maryjs" 
+    // "Alex O'Connor" -> "alexoconnor"
+    // "José María" -> "josemaria"
+    // 
+    // For duplicate names like multiple "John Doe":
+    // First: "johndoe"
+    // Second: "johndoe_"
+    // Third: "johndoe-"
+    // Fourth: "_johndoe"
+    // Fifth: "johndoe_1"
+    // And so on...
+    
+    const cleanName = fullName
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '') // Remove special characters
+      .trim();
+
+    const nameParts = cleanName.split(/\s+/).filter(part => part.length > 0);
+    
+    let baseUsername = '';
+    
+    if (nameParts.length === 1) {
+      // Single name: "John" -> "john"
+      baseUsername = nameParts[0];
+    } else if (nameParts.length === 2) {
+      // First and last name: "John Doe" -> "johndoe"
+      baseUsername = nameParts[0] + nameParts[1];
+    } else {
+      // Multiple names: "Mary Jane Smith" -> "maryjs"
+      baseUsername = nameParts[0] + nameParts.slice(1).map(name => name[0]).join('');
+    }
+
+    // Ensure minimum length
+    if (baseUsername.length < 3) {
+      baseUsername = baseUsername.padEnd(3, 'x');
+    }
+
+    // Try different beautiful variations to find a unique username
+    const variations = [
+      baseUsername, // "johndoe"
+      baseUsername + '_', // "johndoe_"
+      baseUsername + '-', // "johndoe-"
+      '_' + baseUsername, // "_johndoe"
+      baseUsername + '_1', // "johndoe_1"
+      baseUsername + '-1', // "johndoe-1"
+      baseUsername + '1', // "johndoe1"
+      baseUsername + '_2', // "johndoe_2"
+      baseUsername + '-2', // "johndoe-2"
+      baseUsername + '2', // "johndoe2"
+    ];
+
+    // Try variations first
+    for (const variation of variations) {
+      const existing = await this.prismaService.user.findUnique({
+        where: { username: variation },
+      });
+      
+      if (!existing) {
+        return variation;
+      }
+    }
+
+    // If all variations are taken, use systematic approach with separators
+    const separators = ['_', '-', ''];
+    let counter = 3;
+    
+    for (const separator of separators) {
+      let uniqueUsername = baseUsername + separator + counter;
+      
+      while (counter <= 999) {
+        const existingUser = await this.prismaService.user.findUnique({
+          where: { username: uniqueUsername },
+        });
+        
+        if (!existingUser) {
+          return uniqueUsername;
+        }
+        
+        counter++;
+        uniqueUsername = baseUsername + separator + counter;
+      }
+      
+      // Reset counter for next separator
+      counter = 3;
+    }
+    
+    // Last resort: use timestamp
+    const timestamp = Date.now().toString().slice(-4);
+    return baseUsername + '_' + timestamp;
   }
 }
