@@ -61,7 +61,9 @@ model VerifyUser {
 model Portfolio {
   id           String   @id @default(uuid())
   userId       String
-  htmlContent  String 
+  htmlContent  String   // Keep for backward compatibility
+  projectData  String?  // Complete GrapesJS project data (JSON)
+  pagesData    String?  // Individual pages HTML data (JSON)
   name         String?
   published    Boolean  @default(false)
   user         User     @relation(fields: [userId], references: [id])

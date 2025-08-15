@@ -13,6 +13,16 @@ export class CreatePortfolioDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
+  projectData?: string; // Complete GrapesJS project data (JSON)
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  pagesData?: string; // Individual pages HTML data (JSON)
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
   name?: string;
 
   @ApiProperty()
