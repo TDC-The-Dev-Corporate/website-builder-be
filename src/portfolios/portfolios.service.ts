@@ -26,7 +26,6 @@ export class PortfoliosService {
       },
     });
 
-    // Clear user drafts cache after creating new portfolio
     if (createPortfolioDto.userId) {
       await this.clearCacheByUserId(createPortfolioDto.userId);
     }
@@ -76,7 +75,7 @@ export class PortfoliosService {
         cacheKey,
         JSON.stringify(data),
         "EX",
-        3600 // 1 hour (in seconds)
+        3600 
       );
     console.log(`Cache miss`);
 
@@ -131,7 +130,7 @@ export class PortfoliosService {
         cacheKey,
         JSON.stringify(portfolio),
         "EX",
-        3600 // 1 hour (in seconds)
+        3600 
       );
 
       return portfolio;
@@ -157,7 +156,6 @@ export class PortfoliosService {
       include: { user: true },
     });
 
-    // Clear related caches after update
     if (portfolio.user) {
       await this.clearCacheByUserId(portfolio.user.id);
       if (portfolio.user.username) {
@@ -192,12 +190,11 @@ export class PortfoliosService {
       throw new NotFoundException(`118 Portfolio with ID ${id} not found`);
     }
 
-    // First, unpublish any other published portfolios for this user
     await this.prisma.portfolio.updateMany({
       where: {
         userId: portfolio.userId,
         published: true,
-        id: { not: id }, // Don't unpublish the current one if it's already published
+        id: { not: id },
       },
       data: { published: false },
     });
